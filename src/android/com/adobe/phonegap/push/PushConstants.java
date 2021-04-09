@@ -9,6 +9,7 @@ public interface PushConstants {
   public static final String NOT_ID = "notId";
   public static final String PUSH_BUNDLE = "pushBundle";
   public static final String ICON = "icon";
+  public static final String LARGE_ICON = "largeIcon";
   public static final String ICON_COLOR = "iconColor";
   public static final String SOUND = "sound";
   public static final String SOUND_DEFAULT = "default";

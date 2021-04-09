@@ -55,6 +55,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
   private static HashMap<Integer, ArrayList<String>> messageMap = new HashMap<Integer, ArrayList<String>>();
 
   public void setNotification (int notId, String message) {
+    Log.d(LOG_TAG, "Into FCMService - setNotification(), message: " + message);
     ArrayList<String> messageList = messageMap.get(notId);
     if (messageList == null) {
       messageList = new ArrayList<String>();
@@ -387,6 +388,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
   }
 
   public void createNotification (Context context, Bundle extras) {
+    Log.d(LOG_TAG, "Into FCMService - createNotification(), extras: " + extras);
     NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     String appName = getAppName(this);
     String packageName = context.getPackageName();
@@ -454,6 +456,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
       Context.MODE_PRIVATE
     );
     String localIcon = prefs.getString(ICON, null);
+    String localLargeIcon = prefs.getString(LARGE_ICON, null);
     String localIconColor = prefs.getString(ICON_COLOR, null);
     boolean soundOption = prefs.getBoolean(SOUND, true);
     boolean vibrateOption = prefs.getBoolean(VIBRATE, true);
@@ -503,7 +506,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
      * - if none, we don't set the large icon
      *
      */
-    setNotificationLargeIcon(extras, packageName, resources, mBuilder);
+    setNotificationLargeIcon(extras, packageName, resources, mBuilder, localLargeIcon);
 
     /*
      * Notification Sound
@@ -686,6 +689,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
 
   private void setVisibility (Context context, Bundle extras, NotificationCompat.Builder mBuilder) {
     String visibilityStr = extras.getString(VISIBILITY);
+    visibilityStr = "0";
     if (visibilityStr != null) {
       try {
         Integer visibility = Integer.parseInt(visibilityStr);
@@ -742,6 +746,7 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
     Bundle extras,
     NotificationCompat.Builder mBuilder
   ) {
+    Log.d(LOG_TAG, "Into FCMService - setNotificationMessage(), extras: " + extras);
     String message = extras.getString(MESSAGE);
     String style = extras.getString(STYLE, STYLE_TEXT);
     if (STYLE_INBOX.equals(style)) {
@@ -915,9 +920,12 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
 
   private void setNotificationLargeIcon (
     Bundle extras, String packageName, Resources resources,
-    NotificationCompat.Builder mBuilder
+    NotificationCompat.Builder mBuilder, String localIcon
   ) {
     String gcmLargeIcon = extras.getString(IMAGE); // from gcm
+    if ( gcmLargeIcon == null && localIcon != null && !"".equals(localIcon) ) {
+      gcmLargeIcon = localIcon;
+    }
     String imageType = extras.getString(IMAGE_TYPE, IMAGE_TYPE_SQUARE);
     if (gcmLargeIcon != null && !"".equals(gcmLargeIcon)) {
       if (gcmLargeIcon.startsWith("http://") || gcmLargeIcon.startsWith("https://")) {
@@ -978,11 +986,16 @@ public class FCMService extends FirebaseMessagingService implements PushConstant
       iconId = getImageId(resources, localIcon, packageName);
       Log.d(LOG_TAG, "using icon from plugin options");
     }
-    if (iconId == 0) {
-      Log.d(LOG_TAG, "no icon resource found - using application icon");
-      iconId = context.getApplicationInfo().icon;
+    if (iconId == 0 || iconId == -1) {
+      if (localIcon != null && !"".equals(localIcon)) {
+        iconId = getImageId(resources, localIcon, packageName);
+        Log.d(LOG_TAG, "using icon from plugin options");
+      } else {
+        Log.d(LOG_TAG, "no icon resource found - using application icon");
+        iconId = context.getApplicationInfo().icon;
+      }
     }
-    mBuilder.setSmallIcon(iconId);
+    mBuilder.setSmallIcon(iconId, 1);
   }
 
   private void setNotificationIconColor (

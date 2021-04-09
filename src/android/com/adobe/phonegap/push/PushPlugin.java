@@ -6,6 +6,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.media.AudioAttributes;
@@ -268,6 +269,11 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
               Log.d(LOG_TAG, "no icon option");
             }
             try {
+              editor.putString(LARGE_ICON, jo.getString(LARGE_ICON));
+            } catch (JSONException e) {
+              Log.d(LOG_TAG, "no largeIcon option");
+            }
+            try {
               editor.putString(ICON_COLOR, jo.getString(ICON_COLOR));
             } catch (JSONException e) {
               Log.d(LOG_TAG, "no iconColor option");
@@ -499,6 +505,7 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
    * cached for later processing.
    */
   public static void sendExtras (Bundle extras) {
+    Log.d(LOG_TAG, "Into PushPlugin - sendExtras()");
     if (extras != null) {
       String noCache = extras.getString(NO_CACHE);
       if (gWebView != null) {
@@ -536,8 +543,20 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
 
   @Override
   public void initialize (CordovaInterface cordova, CordovaWebView webView) {
+    Log.d(LOG_TAG, "Into initialize");
     super.initialize(cordova, webView);
     gForeground = true;
+    // Upon initialization, if the app was dead and opens when pressing a push notification, we can read the notification data.
+    Bundle extras = cordova.getActivity().getIntent().getExtras();
+    Log.d(LOG_TAG, "Enter into initialize -> extras: " + extras);
+
+    if (extras != null) {
+        Bundle originalExtras = extras.getBundle(PUSH_BUNDLE);
+        Log.d(LOG_TAG, "Enter into initialize originalExtras: " + originalExtras);
+        if (originalExtras != null) sendExtras(originalExtras);
+        else sendExtras(extras);
+    }
+
   }
 
   @Override
@@ -565,6 +584,23 @@ public class PushPlugin extends CordovaPlugin implements PushConstants {
     if (prefs.getBoolean(CLEAR_NOTIFICATIONS, true)) {
       clearAllNotifications();
     }
+  }
+
+  @Override
+  public void onNewIntent(Intent intent) {
+    Log.d(LOG_TAG, "Into onNewIntent intent: " + intent);
+    super.onNewIntent(intent);
+    // When the app is running in the background, we can collect and read the data that comes from the notification.
+    Bundle extras = intent.getExtras();
+    Log.d(LOG_TAG, "Into onNewIntent -> extras: " + extras);
+
+    if (extras != null) {
+      Bundle originalExtras = extras.getBundle(PUSH_BUNDLE);
+      Log.d(LOG_TAG, "Into onNewIntent originalExtras: " + originalExtras);
+      if (originalExtras != null) sendExtras(originalExtras);
+      else sendExtras(extras);
+    }
+
   }
 
   private void clearAllNotifications () {
