@@ -2,6 +2,8 @@
 
 ## [UNRELEASED]
 **Breaking:**
+
+* fix(android): Fixed in the management of the notification image. [a7ef53e](https://github.com/javierluisfuente/cordova-plugin-push/commit/a7ef53e244dd35b9e0cd9b6f938884ffbde32dcc)
 * fix(android): When the app is on background or closed, we can read the data that comes from the notification.Large icon support is also added in notification. [fbb45e9](https://github.com/javierluisfuente/cordova-plugin-push/commit/a438370af6bcd3269fbe4ca3498a5a6f32489f9a)
 
 ## 2.0.0
