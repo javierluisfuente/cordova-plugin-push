@@ -94,6 +94,7 @@ class FCMService : FirebaseMessagingService() {
    * @param message
    */
   fun setNotification(notId: Int, message: String?) {
+    Log.d(TAG, "Into FCMService - setNotification(), message: " + message);
     var messageList = messageMap[notId]
 
     if (messageList == null) {
@@ -123,6 +124,7 @@ class FCMService : FirebaseMessagingService() {
       extras.putString(PushConstants.SOUND, it.sound)
       extras.putString(PushConstants.ICON, it.icon)
       extras.putString(PushConstants.COLOR, it.color)
+      extras.putString(PushConstants.IMAGE, it.imageUrl.toString());
     }
 
     for ((key, value) in message.data) {
@@ -458,6 +460,7 @@ class FCMService : FirebaseMessagingService() {
   }
 
   private fun createNotification(extras: Bundle?) {
+    Log.d(TAG, "Into FCMService - createNotification(), extras: " + extras);
     val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
     val appName = getAppName(this)
     val notId = parseNotificationIdToInt(extras)
@@ -505,11 +508,13 @@ class FCMService : FirebaseMessagingService() {
       .setAutoCancel(true)
 
     val localIcon = pushSharedPref.getString(PushConstants.ICON, null)
+    val localLargeIcon = pushSharedPref.getString(PushConstants.LARGE_ICON, null)
     val localIconColor = pushSharedPref.getString(PushConstants.ICON_COLOR, null)
     val soundOption = pushSharedPref.getBoolean(PushConstants.SOUND, true)
     val vibrateOption = pushSharedPref.getBoolean(PushConstants.VIBRATE, true)
 
     Log.d(TAG, "stored icon=$localIcon")
+    Log.d(TAG, "stored icon=$localLargeIcon")
     Log.d(TAG, "stored iconColor=$localIconColor")
     Log.d(TAG, "stored sound=$soundOption")
     Log.d(TAG, "stored vibrate=$vibrateOption")
@@ -551,7 +556,7 @@ class FCMService : FirebaseMessagingService() {
      * - checks to see if resource image, LOADS IT!
      * - if none, we don't set the large icon
      */
-    setNotificationLargeIcon(extras, mBuilder)
+    setNotificationLargeIcon(extras, mBuilder, localLargeIcon)
 
     /*
      * Notification Sound
@@ -790,6 +795,7 @@ class FCMService : FirebaseMessagingService() {
   private fun setVisibility(extras: Bundle?, mBuilder: NotificationCompat.Builder) {
     extras?.getString(PushConstants.VISIBILITY)?.let { visibilityStr ->
       try {
+        Log.d(TAG, "Into FCMService - setVisibility() - visibilityStr =[$visibilityStr]")
         val visibilityInt = visibilityStr.toInt()
 
         if (
@@ -845,6 +851,7 @@ class FCMService : FirebaseMessagingService() {
     extras: Bundle?,
     mBuilder: NotificationCompat.Builder,
   ) {
+    Log.d(TAG, "Into FCMService - setNotificationMessage(), extras: " + extras);
     extras?.let {
       val message = it.getString(PushConstants.MESSAGE)
 
@@ -1038,9 +1045,13 @@ class FCMService : FirebaseMessagingService() {
   private fun setNotificationLargeIcon(
     extras: Bundle?,
     mBuilder: NotificationCompat.Builder,
+    localLargeIcon: String?
   ) {
     extras?.let {
-      val gcmLargeIcon = it.getString(PushConstants.IMAGE)
+      var gcmLargeIcon = it.getString(PushConstants.IMAGE)
+      if ( gcmLargeIcon == null && localLargeIcon != null && !"".equals(localLargeIcon) ) {
+        gcmLargeIcon = localLargeIcon;
+      }
       val imageType = it.getString(PushConstants.IMAGE_TYPE, PushConstants.IMAGE_TYPE_SQUARE)
 
       if (gcmLargeIcon != null && gcmLargeIcon != "") {
@@ -1105,7 +1116,7 @@ class FCMService : FirebaseMessagingService() {
       val icon = it.getString(PushConstants.ICON)
 
       val iconId = when {
-        icon != null && icon != "" -> {
+        icon != null && icon != "" && icon != "-1" -> {
           getImageId(icon)
         }
 
@@ -1119,7 +1130,7 @@ class FCMService : FirebaseMessagingService() {
         }
       }
 
-      mBuilder.setSmallIcon(iconId)
+      mBuilder.setSmallIcon(iconId, 1)
     }
   }
 

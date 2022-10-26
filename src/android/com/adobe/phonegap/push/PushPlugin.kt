@@ -7,6 +7,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.content.res.Resources.NotFoundException
 import android.media.AudioAttributes
 import android.net.Uri
@@ -149,6 +150,7 @@ class PushPlugin : CordovaPlugin() {
         return null
       }
 
+      Log.d(TAG, "Into PushPlugin - sendExtras() - [$extras]");
       extras?.let {
         val noCache = it.getString(PushConstants.NO_CACHE)
 
@@ -521,6 +523,15 @@ class PushPlugin : CordovaPlugin() {
           }
 
           /**
+           * Set Large Icon
+           */
+          try {
+            putString(PushConstants.LARGE_ICON, it.getString(PushConstants.LARGE_ICON))
+          } catch (e: JSONException) {
+            Log.d(TAG, formatLogMessage("No Large Icon Options"))
+          }
+
+          /**
            * Set Icon Color
            */
           try {
@@ -629,6 +640,7 @@ class PushPlugin : CordovaPlugin() {
            */
           sharedPref.edit()?.apply {
             remove(PushConstants.ICON)
+            remove(PushConstants.LARGE_ICON)
             remove(PushConstants.ICON_COLOR)
             remove(PushConstants.CLEAR_BADGE)
             remove(PushConstants.SOUND)
@@ -793,8 +805,18 @@ class PushPlugin : CordovaPlugin() {
    * Initialize
    */
   override fun initialize(cordova: CordovaInterface, webView: CordovaWebView) {
+    Log.d(TAG, "Into initialize");
     super.initialize(cordova, webView)
     isInForeground = true
+    // Upon initialization, if the app was dead and opens when pressing a push notification, we can read the notification data.
+    var extras: Bundle? = cordova.getActivity().getIntent().getExtras()
+    Log.d(TAG, "Enter into initialize -> extras: $extras")
+
+    if (extras != null) {
+      val originalExtras = extras.getBundle(PushConstants.PUSH_BUNDLE)
+      Log.d(TAG, "Enter into initialize originalExtras: $originalExtras")
+      if (originalExtras != null) sendExtras(originalExtras) else sendExtras(extras)
+    }
   }
 
   /**
@@ -831,6 +853,19 @@ class PushPlugin : CordovaPlugin() {
     }
 
     super.onDestroy()
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    Log.d(TAG, "Into onNewIntent intent: $intent")
+    super.onNewIntent(intent)
+    // When the app is running in the background, we can collect and read the data that comes from the notification.
+    val extras = intent.extras
+    Log.d(TAG, "Into onNewIntent -> extras: $extras")
+    if (extras != null) {
+      val originalExtras = extras.getBundle(PushConstants.PUSH_BUNDLE)
+      Log.d(TAG, "Into onNewIntent originalExtras: $originalExtras")
+      if (originalExtras != null) sendExtras(originalExtras) else sendExtras(extras)
+    }
   }
 
   private fun clearAllNotifications() {

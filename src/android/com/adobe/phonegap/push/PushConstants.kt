@@ -15,6 +15,7 @@ object PushConstants {
   const val NOT_ID: String = "notId"
   const val PUSH_BUNDLE: String = "pushBundle"
   const val ICON: String = "icon"
+  const val LARGE_ICON: String = "largeIcon"
   const val ICON_COLOR: String = "iconColor"
   const val SOUND: String = "sound"
   const val SOUND_DEFAULT: String = "default"
