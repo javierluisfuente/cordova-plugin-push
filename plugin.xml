@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
   xmlns:android="http://schemas.android.com/apk/res/android"
-  id="@havesource/cordova-plugin-push" version="4.0.0-dev.0">
+  id="@havesource/cordova-plugin-push" version="4.0.0-dev.1">
 
   <name>Cordova Push Plugin</name>
   <description>Enable receiving push notifications on Android, iOS and Windows devices. Android uses Firebase Cloud Messaging. iOS uses Apple APNS Notifications. Windows uses Microsoft WNS Notifications.</description>
@@ -41,6 +41,10 @@
       <activity android:name="com.adobe.phonegap.push.BackgroundHandlerActivity" android:exported="true" android:permission="${applicationId}.permission.BackgroundHandlerActivity">
         <intent-filter>
           <action android:name="com.adobe.phonegap.push.background.MESSAGING_EVENT"/>
+          <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+		<intent-filter>
+          <action android:name="appointmentNotificationCategory" />
           <category android:name="android.intent.category.DEFAULT" />
         </intent-filter>
       </activity>
