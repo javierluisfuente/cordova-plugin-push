@@ -3,6 +3,7 @@
 ## [UNRELEASED]
 **Breaking:**
 
+* fix(android): for API>=33, Fixed plugin initialization when starting the app. Add uses permission `android.permission.POST_NOTIFICATIONS`.
 * fix(android): for API>=31, Fixed in the management of the notification image. When the app is on background or closed, we can read the data that comes from the notification. Large icon support is also added in notification. [b26023e](https://github.com/javierluisfuente/cordova-plugin-push/commit/b26023ef37c3e9071d70f32372c955ca937364f1)
 
 ## 3.0.1
