@@ -42,6 +42,9 @@ class PushPlugin : CordovaPlugin() {
 
     private const val REQ_CODE_INITIALIZE_PLUGIN = 0
 
+    // Variable para almacenar el estado de visualización del modal de notificaciones push del SO
+    private var showModalNotifications: Boolean = true
+
     /**
      * Is the WebView in the foreground?
      */
@@ -624,7 +627,8 @@ class PushPlugin : CordovaPlugin() {
   }
 
   private fun checkForPostNotificationsPermission(): Boolean {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && showModalNotifications) {
       if (!PermissionHelper.hasPermission(this, Manifest.permission.POST_NOTIFICATIONS))
       {
         PermissionHelper.requestPermission(
@@ -632,6 +636,9 @@ class PushPlugin : CordovaPlugin() {
           REQ_CODE_INITIALIZE_PLUGIN,
           Manifest.permission.POST_NOTIFICATIONS
         )
+
+        showModalNotifications = false
+
         return false
       }
     }
